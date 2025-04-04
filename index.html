@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionAI | Advanced Image Processing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #000;
+            --white: #fff;
+            --dark-gray: #1d1d1f;
+            --light-gray: #f5f5f7;
+            --primary: #0071e3;
+            --primary-hover: #0077ed;
+            --text-dark: #1d1d1f;
+            --text-light: #86868b;
+            --transition: all 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+            --color-human: #33FF57;
+            --color-vehicle: #3357FF;
+            --color-animal: #F3FF33;
+            --color-object: #FF33F3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-dark);
+            background-color: var(--white);
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 44px;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: var(--white);
+            font-size: 15px;
+            font-weight: 400;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            opacity: 1;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 44px;
+            background: linear-gradient(to bottom, #000 0%, #1a1a1a 100%);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards 0.3s;
+        }
+
+        .hero p {
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 18px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards 0.5s;
+        }
+
+        .hero .cta {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards 0.7s;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 22px;
+            background-color: var(--primary);
+            color: var(--white);
+            border-radius: 30px;
+            font-size: 17px;
+            font-weight: 400;
+            text-decoration: none;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.04);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            margin-left: 16px;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(0, 113, 227, 0.1);
+        }
+
+        .section {
+            padding: 80px 0;
+            position: relative;
+        }
+
+        .section-dark {
+            background-color: var(--black);
+            color: var(--white);
+        }
+
+        .section-light {
+            background-color: var(--light-gray);
+        }
+
+        .section-title {
+            font-size: 40px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .section-subtitle {
+            font-size: 21px;
+            font-weight: 400;
+            text-align: center;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .upload-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .drop-zone {
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background-color: rgba(0, 113, 227, 0.1);
+        }
+
+        .drop-zone i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .drop-zone p {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .drop-zone .small {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .image-preview {
+            width: 100%;
+            margin-top: 30px;
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+
+        #preview-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .process-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 12px;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: inherit;
+        }
+
+        .process-btn i {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .process-btn span {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .process-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.03);
+        }
+
+        .results-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .result-image {
+            flex: 2;
+            background-color: var(--white);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        #result-canvas {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .result-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-card {
+            background-color: var(--white);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card h3 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .result-card h3 i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        .detection-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .detection-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .human-color { background-color: var(--color-human); }
+        .vehicle-color { background-color: var(--color-vehicle); }
+        .animal-color { background-color: var(--color-animal); }
+        .object-color { background-color: var(--color-object); }
+
+        .detection-label {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .detection-confidence {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .summary-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .summary-card {
+            background-color: var(--light-gray);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .summary-count {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .summary-label {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .loader {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 113, 227, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            font-size: 18px;
+            color: var(--text-light);
+        }
+
+        footer {
+            background-color: var(--black);
+            color: var(--white);
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-link {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 12px;
+            opacity: 0.8;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero p {
+                font-size: 21px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .section-subtitle {
+                font-size: 18px;
+            }
+
+            .results-container {
+                flex-direction: column;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                display: block;
+                width: 100%;
+                max-width: 280px;
+                margin: 0 auto 10px;
+            }
+
+            .btn-secondary {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="#" class="nav-link">Overview</a>
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="#results" class="nav-link">Results</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>VisionAI Processor</h1>
+        <p>Advanced parallel image processing powered by AI</p>
+        <div class="cta">
+            <a href="#upload" class="btn">Upload Image</a>
+            <a href="#features" class="btn btn-secondary">Learn More</a>
+        </div>
+    </section>
+
+    <!-- Upload Section -->
+    <section id="upload" class="section section-dark">
+        <h2 class="section-title">Upload Your Image</h2>
+        <p class="section-subtitle">Drag & drop your image or click to browse files</p>
+        
+        <div class="upload-container">
+            <div id="drop-zone" class="drop-zone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop your image here</p>
+                <p class="small">or</p>
+                <button class="btn">Select Image</button>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+            
+            <div class="image-preview">
+                <img id="preview-image" src="" alt="Preview">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section section-light">
+        <h2 class="section-title">Powerful Processing Features</h2>
+        <p class="section-subtitle">Our parallel processing engine delivers fast, accurate results</p>
+        
+        <div class="options-grid">
+            <button class="process-btn" data-operation="detect_humans">
+                <i class="fas fa-user-friends"></i>
+                <span>Human Detection</span>
+            </button>
+            <button class="process-btn" data-operation="detect_vehicles">
+                <i class="fas fa-car-side"></i>
+                <span>Vehicle Detection</span>
+            </button>
+            <button class="process-btn" data-operation="detect_animals">
+                <i class="fas fa-paw"></i>
+                <span>Animal Detection</span>
+            </button>
+            <button class="process-btn" data-operation="detect_objects">
+                <i class="fas fa-shapes"></i>
+                <span>Object Detection</span>
+            </button>
+            <button class="process-btn" data-operation="gaussian_blur">
+                <i class="fas fa-blur"></i>
+                <span>Gaussian Blur</span>
+            </button>
+            <button class="process-btn" data-operation="median_blur">
+                <i class="fas fa-droplet"></i>
+                <span>Median Blur</span>
+            </button>
+            <button class="process-btn" data-operation="bilateral_blur">
+                <i class="fas fa-filter"></i>
+                <span>Bilateral Blur</span>
+            </button>
+            <button class="process-btn" data-operation="edge">
+                <i class="fas fa-border-all"></i>
+                <span>Edge Detection</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="section">
+        <h2 class="section-title">How VisionAI Works</h2>
+        <p class="section-subtitle">Advanced parallel processing for lightning-fast results</p>
+        
+        <div class="loader">
+            <div class="spinner"></div>
+            <p class="loader-text">Processing your image with our AI engine...</p>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results" class="section section-light">
+        <h2 class="section-title">Processing Results</h2>
+        <p class="section-subtitle">See detailed analysis of your processed image</p>
+        
+        <div class="results-container">
+            <div class="result-image">
+                <canvas id="result-canvas"></canvas>
+            </div>
+            <div class="result-details">
+                <div class="result-card">
+                    <h3><i class="fas fa-chart-pie"></i> Detection Summary</h3>
+                    <div id="summary-list"></div>
+                </div>
+                <div class="result-card">
+                    <h3><i class="fas fa-list-ul"></i> Detection Details</h3>
+                    <div id="detection-results"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Use</a>
+            <a href="#" class="footer-link">Support</a>
+            <a href="#" class="footer-link">Contact Us</a>
+        </div>
+        <p class="copyright">Copyright © 2023 VisionAI. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation on scroll
+            const animateOnScroll = () => {
+                const sections = document.querySelectorAll('.section-title, .section-subtitle');
+                
+                sections.forEach(section => {
+                    const sectionTop = section.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    
+                    if (sectionTop < windowHeight - 100) {
+                        section.style.opacity = '1';
+                        section.style.transform = 'translateY(0)';
+                    }
+                });
+            };
+            
+            setTimeout(() => {
+                animateOnScroll();
+            }, 500);
+            
+            window.addEventListener('scroll', animateOnScroll);
+            
+            // File upload handling
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const previewImage = document.getElementById('preview-image');
+            const imagePreview = document.querySelector('.image-preview');
+            const browseBtn = dropZone.querySelector('.btn');
+            
+            browseBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInput.click();
+            });
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropZone.classList.add('dragover');
+            }
+            
+            function unhighlight() {
+                dropZone.classList.remove('dragover');
+            }
+            
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+            
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            function handleFiles(files) {
+                if (files.length) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImage.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                            setTimeout(() => {
+                                imagePreview.style.opacity = '1';
+                                imagePreview.style.transform = 'translateY(0)';
+                            }, 10);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('Please select an image file.');
+                    }
+                }
+            }
+            
+            // Process buttons
+            const processButtons = document.querySelectorAll('.process-btn');
+            const loader = document.querySelector('.loader');
+            
+            processButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    if (!previewImage.src) {
+                        alert('Please upload an image first.');
+                        return;
+                    }
+                    
+                    loader.style.display = 'flex';
+                    
+                    try {
+                        const operation = this.getAttribute('data-operation');
+                        const result = await processImage(operation);
+                        
+                        // Display processed image
+                        const canvas = document.getElementById('result-canvas');
+                        const ctx = canvas.getContext('2d');
+                        const img = new Image();
+                        
+                        img.onload = function() {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx.drawImage(img, 0, 0);
+                        };
+                        
+                        img.src = `/outputs/${result.processed}`;
+                        
+                        // Update results
+                        updateResults(result.detections);
+                        
+                        document.getElementById('results').scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Processing failed. Please try again.');
+                    } finally {
+                        loader.style.display = 'none';
+                    }
+                });
+            });
+            
+            async function processImage(operation) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('operation', operation);
+                
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('API request failed');
+                return await response.json();
+            }
+            
+            function getDetectionColor(label) {
+                if (['person'].includes(label.toLowerCase())) return 'human-color';
+                if (['car', 'truck', 'bus', 'motorcycle', 'bicycle'].includes(label.toLowerCase())) return 'vehicle-color';
+                if (['dog', 'cat', 'bird', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe'].includes(label.toLowerCase())) return 'animal-color';
+                return 'object-color';
+            }
+            
+            function updateResults(detections) {
+                const summaryList = document.getElementById('summary-list');
+                const detectionResults = document.getElementById('detection-results');
+                
+                // Clear previous results
+                summaryList.innerHTML = '';
+                detectionResults.innerHTML = '';
+                
+                // Group detections by type
+                const summaryCounts = {};
+                detections.forEach(det => {
+                    summaryCounts[det.label] = (summaryCounts[det.label] || 0) + 1;
+                });
+                
+                // Create summary cards
+                const summaryHTML = Object.entries(summaryCounts).map(([label, count]) => `
+                    <div class="summary-card">
+                        <div class="summary-count">${count}</div>
+                        <div class="summary-label">${label}${count > 1 ? 's' : ''}</div>
+                    </div>
+                `).join('');
+                
+                summaryList.innerHTML = summaryHTML;
+                
+                // Create detailed list
+                const detailsHTML = detections.map(det => `
+                    <div class="detection-item">
+                        <div class="detection-color ${getDetectionColor(det.label)}"></div>
+                        <div class="detection-label">${det.label}</div>
+                        <div class="detection-confidence">${(det.confidence * 100).toFixed(1)}%</div>
+                    </div>
+                `).join('');
+                
+                detectionResults.innerHTML = detailsHTML;
+            }
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
